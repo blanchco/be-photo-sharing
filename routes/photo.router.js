@@ -3,6 +3,7 @@ const router = express.Router();
 const PhotoModel = require('../models/photo.model')
 const multer = require('multer')
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs')
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -18,7 +19,12 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
     const allowedMimeTypes = ["image/webp", "image/png", "image/jpg", "image/jpeg"]
-    allowedMimeTypes.includes(file.mimetype) ? cb(null, true) : cb(null, false)
+    req.isFileValid = true
+    if(!allowedMimeTypes.includes(file.mimetype)) {
+        req.isFileValid = false
+        cb(null, false)
+    }
+    cb(null, true) 
 }
 const upload = multer({ storage: storage, fileFilter: fileFilter })
 
@@ -29,13 +35,42 @@ router.get('/', async function(req, res, next) {
 });
 
 router.post('/upload', upload.single('image'), function(req, res, next) {
+    if(req.isFileValid === false) {
+        return res.status(500).send({
+            success: false,
+            message: 'Error Uploading File'
+        })
+    }
     const newPhoto = new PhotoModel({
         name: req.body.name,
-        image: 'http://localhost:3000/' + req.file.path,
+        image: req.file.path,
     })
 
     newPhoto.save();
-    res.send('Uploaded Photo');
+    return res.status(200).send({
+        success: true,
+        message: 'Uploaded File'
+    });
 });
+
+router.delete('/:id/delete', async function(req, res, next) {
+    const id = req.params.id
+    const photo = await PhotoModel.findOne({ _id: id });
+    fs.unlink(`./${photo.image}`, err => {
+        if (err) {
+            return res.status(500).send({
+                success: false,
+                message: 'Error Deleting File'
+            })
+        }
+    })
+    await PhotoModel.deleteOne({ _id: id });
+
+    return res.status(200).send({
+        success: true,
+        message: 'Deleted File'
+    });
+    
+})
   
 module.exports = router;
