@@ -94,14 +94,32 @@ router.delete('/logout', async function(req, res, next) {
 })
 
 router.post('/register', function(req, res, next) {
-    let userData = req.body;
-    let user = new UserModel(userData)
-    user.save()
+    let {username, password } = req.body
+    let userData = {
+        username,
+        password,
+        requestToken: ''
+    }
 
-    return res.status(200).send({
-        success: true,
-        message: 'Registered User'
-    });
+    UserModel.findOne({username}, async (error, user) => {
+        if(error){
+            console.log(error)
+        } else {
+            if(!user){
+                let newUser = new UserModel(userData)
+                await newUser.save()
+                return res.status(200).send({
+                    success: true,
+                    message: 'Registered User'
+                });
+            } else {
+                return res.status(200).send({
+                    success: false,
+                    message: 'User already exists'
+                });
+            }
+        }
+    })
 });
 
 router.delete
