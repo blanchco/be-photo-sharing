@@ -4,6 +4,7 @@ require('dotenv').config()
 const verifyJWT = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if(!authHeader){
+        // no authorization
         return res.sendStatus(401)
     }
 
@@ -14,6 +15,7 @@ const verifyJWT = (req, res, next) => {
             return res.sendStatus(401)
         }
 
+        req.user_id = decoded.user_id
         req.username = decoded.username
         next()
     })
