@@ -1,6 +1,6 @@
 const credentials = (req, res, next) => {
     const origin = req.headers.origin
-    if (origin === 'http://localhost:4200'){
+    if (origin === process.env.FE_SERVER){
         res.header('Access-Control-Allow-Credentials', true)
     }
     next()

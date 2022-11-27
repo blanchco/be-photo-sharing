@@ -1,6 +1,6 @@
 const corsOptions = {
     origin: (origin, cb) => {
-        if(origin === 'http://localhost:4200' || !origin){
+        if(origin === process.env.FE_SERVER || !origin){
             cb(null, true)
         } else {
             cb(new Error('Not allowed by CORS'))
